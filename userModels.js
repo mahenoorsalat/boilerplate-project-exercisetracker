@@ -1,32 +1,14 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema(
-    
-    {
-       
+const exerciseSchema = new mongoose.Schema({
+  description: { type: String, required: true },
+  duration: { type: Number, required: true },
+  date: { type: String, required: true }
+});
 
-        username : {
-        type :String , 
-        required : true , 
-        unique:true , 
-    },
-    description : {
-        type : String , 
-        required : true , 
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  log: [exerciseSchema]
+});
 
-    },
-    duration : {
-        type : Number , 
-        required : true 
-    } , 
-    date : {
-        type : String , 
-        required : true 
-    }
-
-    } , {timestamps : true }
-)
-
-const User = mongoose.model("User" , userSchema)
-module.exports = User
-
+module.exports = mongoose.model("User", userSchema);

@@ -44,6 +44,7 @@ app.post("/api/users" , async (req,res)=>{
       username : savedUser.username,
       _id:savedUser._id
     })
+  
   }
   catch(error){
     console.log(error)
@@ -53,11 +54,15 @@ app.post("/api/users" , async (req,res)=>{
   
 })
 
+app.get('/api/users' , async(req, res)=>{
+  const users = await User.find({} , "username _id")
+  res.json(users)
+
+})
 app.post('/api/users/:id/exercises' , async(req,res)=> {
   const userId = req.params.id;
 const { description, duration, date } = req.body;
 
-  // 3. Data Validation
   if (!description || !duration) {
     return res.status(400).json({ error: "Description and duration are required." });
   }
@@ -86,6 +91,8 @@ const { description, duration, date } = req.body;
 
   }
 
+  user.log.push(newData)
+  await user.save()
   return res.json({
     _id : user._id , 
     username : user.username , 
@@ -97,10 +104,44 @@ const { description, duration, date } = req.body;
  
  }
  catch(error){
+    res.status(500).json({ error: "Server error" })
 
  }
 
 
+})
+
+app.get("/api/users/:id/logs" , async(req,res)=>{
+  const {from , to , limit} = req.query
+  const userId = req.params.id
+  try{
+    const user = await User.findById(userId)
+    if(!user) return res.json({error:"User not found"})
+      let logs = [...user.log]
+
+    if(from){
+      const fromDate = new Date(from)
+      logs = logs.filter(l=> new Date(l.date) >= fromDate)
+    }
+    if(to){
+      const toDate = new Date(to)
+      logs = logs.filter(l => new Date(l.date) <= toDate )
+    }
+    if(limit){
+      logs = logs.slice(0, parseInt(limit))
+    }
+    res.json({
+      username : user.username, 
+      _id : user._id , 
+      count : logs.length , 
+      log : logs
+    })
+
+  }
+  catch(error){
+        res.status(500).json({ error: "Server error" })
+
+  }
 })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
